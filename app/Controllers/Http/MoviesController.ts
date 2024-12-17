@@ -1,9 +1,10 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import movie from "App/Models/Movie";
+import NotificationService from 'App/Services/NotificationService';
+import Ws from 'App/Services/Ws';
 import MovieValidator from 'App/Validator/MovieValidator';
 
 export default class MoviesController {
-
 
     public async find({ request, params }: HttpContextContract) {
         if (params.id) {
@@ -18,14 +19,22 @@ export default class MoviesController {
             } else {
                 return await movie.query()
             } // Devuelve todos los elementos 
-
         }
-
     }
-    public async create({ request }: HttpContextContract) {
+
+    public async create({ request,response }: HttpContextContract) {
         await request.validate(MovieValidator) //Antes de crear validar si se creo correctamente 
-        const body = request.body();
+        const { recipient, ...body} = request.body(); // Extaer el cuerpo de la solicitud
+        if (!recipient) {
+            return response.status(400).send({ error: 'Se requiere el correo para enviar la notificación' });
+        }
         const themovie: movie = await movie.create(body);
+        // Llama al microservicio de notificaciones
+        try {
+            await NotificationService.sendNotification(recipient,themovie.name)
+        } catch (error) {
+            return response.status(500).send({error:'Error al enviar la notificación'})
+        }
         return themovie;
     }
 
@@ -43,5 +52,13 @@ export default class MoviesController {
             response.status(204);
             return await themovie.delete();
     }
+
+    public async Notificar({ response }: HttpContextContract) {
+        Ws.io.emit('notifications', { message: 'Nuevo mensaje' })
+        response.status(200);    
+        return {
+        "message":"ok"
+        };
+        }
 }
 

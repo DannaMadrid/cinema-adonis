@@ -12,7 +12,7 @@ export default class Security {
       method: theRequest.method
     }
     try {
-      const result = await axios.post(`${env.get('MS_SECURITY')}/api/public/security/permissions-validation`, thePermission,
+      const result = await axios.post(`${env.get('proyecto-prog-3')}/api/public/security/permissions-validation`, thePermission,
         {
           headers: {
             Authorization: `Bearer ${token}`

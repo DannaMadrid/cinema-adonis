@@ -9,6 +9,9 @@ export default class SeatsController {
             return theSeat; // Visualizar un solo elemento 
         } else {
             const data = request.all()
+            if("theater_id" in data){
+                return await Seat.query().where("theater_id",request.input('yheater.id'))
+            }
             if ("page" in data && "per_page" in data) {
                 const page = request.input('page', 1); // Paginas 
                 const perPage = request.input("per_page", 20); // Lista los primeros 20
